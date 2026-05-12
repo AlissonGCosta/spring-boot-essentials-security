@@ -1,5 +1,6 @@
 package br.com.costa.spring_boot_essentials.config;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -15,14 +16,14 @@ import java.util.Date;
 @Component
 public class TokenProvider {
 
-    @Value("${jwt.expiration}")
+    @Value("${JWT_EXPIRATION}")
     private long expirationTime;
 
-    @Value("${jwr.key}")
+    @Value("${JWT_KEY}")
     private String key;
 
     //gerar token
-    public String getToken(Authentication authentication) {
+    public String gerarToken(Authentication authentication) {
        UserDetails user = (UserDetails)authentication.getPrincipal();
         return buildTolken(user.getUsername());
     }
@@ -44,5 +45,31 @@ public class TokenProvider {
     }
 
     //validar token
+
+    public boolean isTokenValid(String token) {
+        try {
+            getClaims(token);
+            return true;
+        }catch(Exception e) {
+
+            return false;
+        }
+    }
+
+    private Claims getClaims(String token){
+        //validar assinatura
+        //validar expiração
+
+        return Jwts.parser()
+                .verifyWith(getSigninKey())
+                .build()
+                .parseClaimsJws(token)
+                .getPayload();
+    }
+
+    //extrair infos tokens
+    public String getUsername(String token) {
+        return getClaims(token).getSubject();
+    }
 
 }
